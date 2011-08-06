@@ -1,12 +1,27 @@
+from werkzeug.exceptions import HTTPException
+from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
 
 class Leonidas(object):
 
+    def __init__(self):
+        self.url_map = Map([
+            Rule('/<user_token>/announce', endpoint='announce'),
+        ])
+
+    def announce(self, request, user_token):
+        return Response('Hello %s' % user_token)
+    
     def configure(self, config):
         pass
     
     def dispatch_request(self, request):
-        return Response('Hello World')
+        adapter = self.url_map.bind_to_environ(request.environ)
+        try:
+            endpoint, values = adapter.match()
+            return getattr(self, endpoint)(request, **values)
+        except HTTPException, e:
+            return e
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
