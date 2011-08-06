@@ -17,6 +17,9 @@ status = Table('status', metadata,
     Column('complete', Boolean)
 )
 
-def create_tables(config):
-    engine = create_engine(config['database'], echo=config.get('debug', False))
+def create_tables(engine):
     metadata.create_all(engine)
+
+def bind(*args, **kwargs):
+    engine = create_engine(*args, **kwargs)
+    metadata.bind = engine

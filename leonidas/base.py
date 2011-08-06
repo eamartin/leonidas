@@ -1,22 +1,25 @@
+from datetime import datetime
+
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
 
+import tables #snatches, status
 from utils import ParameterError, required_params
+
 
 class Leonidas(object):
 
     def __init__(self):
-        self.url_map = Map([
-            Rule('/<user_token>/announce', endpoint='announce'),
-        ])
+        self.url_map = self.get_url_map()
         self.config = self.load_config()
+        tables.bind(self.config['database'])
 
     @required_params('info_hash', 'peer_id', 'ip', 'port')
     def announce(self, user_token, info_hash, peer_id, ip, port,
                  uploaded=0, downloaded=0, left=0, compact=False,
                  no_peer_id=False, event=None, numwant=50,
-                 key=None, trackedid=None):
+                 key=None, trackerid=None):
         return Response('Hello %s' % user_token)
 
     def announce_formatter(self, request, user_token):
@@ -34,6 +37,11 @@ class Leonidas(object):
         except ParameterError, e:
             return BadRequest(description=unicode(e))
 
+    def get_url_map(self):
+        return Map([
+            Rule('/<user_token>/announce', endpoint='announce'),
+        ])
+        
     def load_config(self):
         return {}
 
@@ -60,7 +68,4 @@ def main(host='0.0.0.0', port=5000):
     run_simple(host, port, app, use_debugger=True, use_reloader=True)
 
 if __name__ == '__main__':
-    main()
-
-        
-    
+    main()        

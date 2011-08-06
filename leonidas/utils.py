@@ -1,5 +1,9 @@
 from functools import wraps
 
+import sqlalchemy
+
+from tables import metadata
+
 class ExceptionDisplayMixin(object):
     def __unicode__(self):
         return u'%s: %s' % (self.__class__.__name__, self.message)
@@ -21,3 +25,7 @@ def required_params(*params):
             return func(*args, **kwargs)
         return wrapped
     return decorator
+
+def create_tables(config):
+    engine = create_engine(config['database'], echo=config.get('debug', False))
+    metadata.create_all(engine)
