@@ -10,20 +10,19 @@ class Leonidas(object):
         self.url_map = Map([
             Rule('/<user_token>/announce', endpoint='announce'),
         ])
+        self.config = self.load_config()
 
-    @required_params('info_hash', 'peer_id', 'port')
-    def announce(self, user_token, info_hash, peer_id, port,
+    @required_params('info_hash', 'peer_id', 'ip', 'port')
+    def announce(self, user_token, info_hash, peer_id, ip, port,
                  uploaded=0, downloaded=0, left=0, compact=False,
-                 no_peer_id=False, event=None, ip=None, numwant=50,
+                 no_peer_id=False, event=None, numwant=50,
                  key=None, trackedid=None):
         return Response('Hello %s' % user_token)
 
     def announce_formatter(self, request, user_token):
-        return dict(request.args, user_token=user_token)
-    
-    def configure(self, config):
-        self.config = config
-    
+        ip = request.args.get('ip') or request.remote_addr
+        return dict(request.args, user_token=user_token, ip=ip)
+        
     def dispatch_request(self, request):
         adapter = self.url_map.bind_to_environ(request.environ)
         try:
@@ -34,6 +33,9 @@ class Leonidas(object):
             return e
         except ParameterError, e:
             return BadRequest(description=unicode(e))
+
+    def load_config(self):
+        return {}
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
